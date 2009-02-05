@@ -15,6 +15,9 @@ class CalendarEvent < ActiveRecord::Base
 
   validates_presence_of :calendar
 
+  named_scope :with_time_set, :conditions => 'start_time IS NOT NULL AND end_time IS NOT NULL'
+  named_scope :without_time_set, :conditions => 'start_time IS NULL OR end_time IS NULL'
+  
   def to_rrules
     return nil unless recurrences
     rrules = []
