@@ -32,14 +32,14 @@ class Calendar < ActiveRecord::Base
       find(:all, { :joins => :dates, :conditions => conditions })
     end
     
-    private
+    protected
     def process_dates(dates, event)
       case dates
         when Date then event.occurrences << event.calendar.dates.find_by_value(dates)
         when Hash then event.recurrences.create(dates)
         when Enumerable
           dates.each do |date|
-            raise ArgumentError if date.class == Enumerable
+            raise ArgumentError if date.kind_of?(Enumerable)
             process_dates(date, event)
           end
         else

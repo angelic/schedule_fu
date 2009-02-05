@@ -39,5 +39,4 @@ class CalendarEvent < ActiveRecord::Base
     end
     rrules
   end
-
 end
