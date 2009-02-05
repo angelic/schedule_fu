@@ -1,8 +1,11 @@
 class Calendar < ActiveRecord::Base
-  extend ScheduleFu
-
+  extend ScheduleFu::Parser
+  include ScheduleFu::Finder
+  
   has_many(:dates, 
     {:class_name=>'CalendarDate', :order=>'value', :dependent=>:delete_all}) do
+    include ScheduleFu::Finder
+    
     def values
       map {|d| d.value}
     end
@@ -12,19 +15,13 @@ class Calendar < ActiveRecord::Base
     end
     
     def find_by_dates(*args)
-      dates = Calendar.parse(*args)
-      conditions = case dates
-        when Date then ['value = ?', dates]
-        when Range then ['value BETWEEN ? AND ?', dates.first, dates.last]
-        when Enumerable then ['value IN (?)', dates]
-        else
-          raise ArgumentError
-      end
-      find(:all, :conditions => conditions )
+      find(:all, :conditions => conditions_for_date_finders(*args))
     end
   end
 
   has_many(:events, {:class_name=>'CalendarEvent', :dependent=>:destroy}) do
+    include ScheduleFu::Finder
+    
     def create_for(*args)
       dates = Calendar.parse(*args)
       event = create
@@ -33,15 +30,7 @@ class Calendar < ActiveRecord::Base
     end
 
     def find_by_dates(*args)
-      dates = Calendar.parse(*args)
-      conditions = case dates
-        when Date then ['value = ?', dates]
-        when Range then ['value BETWEEN ? AND ?', dates.first, dates.last]
-        when Enumerable then ['value IN (?)', dates]
-        else
-          raise ArgumentError
-      end
-      find(:all, { :joins => :dates, :conditions => conditions })
+      find(:all, { :joins => :dates, :conditions => conditions_for_date_finders(*args) })
     end
     
     def process_dates(dates, event)
@@ -59,6 +48,10 @@ class Calendar < ActiveRecord::Base
     end
   end
 
+  def max_events_per_day_without_time_set
+    
+  end
+  
   def self.create_for_dates(start_date = nil, end_date = nil)
     calendar = create()
     start_date ||= Date.today
@@ -71,6 +64,16 @@ class Calendar < ActiveRecord::Base
     values.each { |date| dates.create(:value => date) }
   end
 
+  def max_events_per_day_without_time_set(*args)
+    conditions = conditions_for_date_finders(*args)
+    conditions[0] << ' AND (start_time IS NULL OR end_time IS NULL) AND calendars.id = ?'
+    conditions << self.id
+    row = CalendarEvent.count({:joins => [:calendar, :dates], 
+        :conditions => conditions, :group => 'calendar_date_id', 
+        :order => 'count_all DESC', :limit => 1})
+    row.empty? ? 0 : row.first[1]
+  end
+    
   def to_ical
     ical = Icalendar::Calendar.new
     ical.prodid = 'ScheduleFu'
