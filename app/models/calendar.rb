@@ -10,6 +10,18 @@ class Calendar < ActiveRecord::Base
     def find_by_value(value)
       find(:first, :conditions => { :value => value })
     end
+    
+    def find_by_dates(*args)
+      dates = Calendar.parse(*args)
+      conditions = case dates
+        when Date then ['value = ?', dates]
+        when Range then ['value BETWEEN ? AND ?', dates.first, dates.last]
+        when Enumerable then ['value IN (?)', dates]
+        else
+          raise ArgumentError
+      end
+      find(:all, :conditions => conditions )
+    end
   end
 
   has_many(:events, {:class_name=>'CalendarEvent', :dependent=>:destroy}) do
@@ -32,7 +44,6 @@ class Calendar < ActiveRecord::Base
       find(:all, { :joins => :dates, :conditions => conditions })
     end
     
-    protected
     def process_dates(dates, event)
       case dates
         when Date then event.occurrences << event.calendar.dates.find_by_value(dates)
