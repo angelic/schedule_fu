@@ -72,6 +72,7 @@ module ScheduleFu
     weekday = Date::DAYNAMES.index(md[3].downcase.capitalize)
     if md[2]
       monthweek = [monthweek(md[1]), monthweek(md[2])]
+      return [{:weekday => weekday, :monthweek => md[1]}, {:weekday => weekday, :monthweek => md[2]}]
     elsif md[1]
       monthweek = monthweek(md[1])
     else

@@ -16,16 +16,7 @@ class Calendar < ActiveRecord::Base
     def create_for(*args)
       dates = Calendar.parse(*args)
       event = create
-      case dates
-        when Date then event.occurrences << event.calendar.dates.find_by_value(dates)
-        when Hash then event.recurrences.create(dates)
-        when Enumerable
-          dates.each do |date|
-            event.occurrences << event.calendar.dates.find_by_value(date)
-          end
-        else
-          raise ArgumentError
-      end
+      process_dates(dates, event)
       event
     end
 
@@ -39,6 +30,21 @@ class Calendar < ActiveRecord::Base
           raise ArgumentError
       end
       find(:all, { :joins => :dates, :conditions => conditions })
+    end
+    
+    private
+    def process_dates(dates, event)
+      case dates
+        when Date then event.occurrences << event.calendar.dates.find_by_value(dates)
+        when Hash then event.recurrences.create(dates)
+        when Enumerable
+          dates.each do |date|
+            raise ArgumentError if date.class == Enumerable
+            process_dates(date, event)
+          end
+        else
+          raise ArgumentError
+      end
     end
   end
 
