@@ -8,7 +8,7 @@ class CalendarEvent < ActiveRecord::Base
   # recurring date patterns
   has_many(:recurrences, {:class_name=>'CalendarRecurrence'})
 
-  has_many :calendar_event_dates
+  has_many :calendar_event_dates, :readonly => true
 
   # actual dates, including occurrences and recurrences
   has_many :dates, :through => :calendar_event_dates, :readonly => true

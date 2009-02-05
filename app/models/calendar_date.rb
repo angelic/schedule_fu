@@ -5,10 +5,10 @@ class CalendarDate < ActiveRecord::Base
   has_and_belongs_to_many(:occurrences,
     {:class_name=>'CalendarEvent', :join_table=>'calendar_occurrences'})
 
-  has_many :calendar_event_dates
+  has_many :calendar_event_dates, :readonly => true
 
   # actual events, including occurrences and recurrences
-  has_many :events, :through => :calendar_event_dates, :readonly => true
+  has_many :events, :through => :calendar_event_dates
 
   validates_presence_of :calendar
   validates_presence_of :value
