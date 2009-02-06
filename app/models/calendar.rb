@@ -47,10 +47,6 @@ class Calendar < ActiveRecord::Base
       end
     end
   end
-
-  def max_events_per_day_without_time_set
-    
-  end
   
   def self.create_for_dates(start_date = nil, end_date = nil)
     calendar = create()
