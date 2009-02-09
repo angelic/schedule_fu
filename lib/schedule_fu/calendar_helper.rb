@@ -187,11 +187,11 @@ module ScheduleFu
     
     def calendar_body(options, vars, &block)
       content_tag(:tbody) do
-          content_tag(:tr) do
-            text = fill_days_last_month(options, vars[:first], vars[:first_weekday], &block)
-            text << fill_days_this_month(options, vars[:first], vars[:last], vars[:last_weekday], &block)
-            text << fill_days_next_month(options, vars[:last], vars[:first_weekday], vars[:last_weekday], &block)
-          end
+        content_tag(:tr) do
+          text = fill_days_last_month(options, vars[:first], vars[:first_weekday], &block)
+          text << fill_days_this_month(options, vars[:first], vars[:last], vars[:last_weekday], &block)
+          text << fill_days_next_month(options, vars[:last], vars[:first_weekday], vars[:last_weekday], &block)
+        end
       end
     end
     
@@ -226,10 +226,11 @@ module ScheduleFu
       cell_attrs ||= {}
       cell_attrs[:class] ||= options[:day_class]
       cell_attrs[:class] += " weekendDay" if weekend?(d) 
-      cell_attrs[:class] += " today" if (d == Date.today) and options[:show_today]
+      cell_attrs[:class] += " today" if (d == Date.today) && options[:show_today]
       content_tag(:td, cell_attrs) do
         text = cell_text
         text << accessible_text(options) if current
+        text
       end
     end
     
