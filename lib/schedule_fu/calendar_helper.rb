@@ -118,33 +118,33 @@ module ScheduleFu
       end
       cal << "</tr></thead><tbody><tr>"
       beginning_of_week(first, first_weekday).upto(first - 1) do |d|
+        cell_text, cell_attrs = block.call(d)
+        cell_text ||= d.day
         cal << %(<td class="#{options[:other_month_class]})
         cal << " weekendDay" if weekend?(d)
-        if options[:accessible]
-          cal << %(">#{d.day}<span class="hidden"> #{Date::MONTHNAMES[d.month]}</span></td>)
-        else
-          cal << %(">#{d.day}</td>)
-        end
+        accessible = options[:accessible] ? 
+            "<span class='hidden'> #{Date::MONTHNAMES[d.mon]}</span>" : ""
+        cal << %(">#{cell_text}#{accessible}</td>)
       end unless first.wday == first_weekday
       first.upto(last) do |cur|
         cell_text, cell_attrs = block.call(cur)
         cell_text  ||= cur.mday
         cell_attrs ||= {}
         cell_attrs[:class] ||= options[:day_class]
-        cell_attrs[:class] += " weekendDay" if [0, 6].include?(cur.wday) 
+        cell_attrs[:class] += " weekendDay" if weekend?(cur) 
         cell_attrs[:class] += " today" if (cur == Date.today) and options[:show_today]  
         cell_attrs = cell_attrs.map {|k, v| %(#{k}="#{v}") }.join(" ")
         cal << "<td #{cell_attrs}>#{cell_text}</td>"
         cal << "</tr><tr>" if cur.wday == last_weekday
       end
       (last + 1).upto(beginning_of_week(last + 7, first_weekday) - 1)  do |d|
+        cell_text, cell_attrs = block.call(d)
+        cell_text ||= d.day
         cal << %(<td class="#{options[:other_month_class]})
         cal << " weekendDay" if weekend?(d)
-        if options[:accessible]
-          cal << %(">#{d.day}<span class='hidden'> #{Date::MONTHNAMES[d.mon]}</span></td>)
-        else
-          cal << %(">#{d.day}</td>)        
-        end
+        accessible = options[:accessible] ? 
+            "<span class='hidden'> #{Date::MONTHNAMES[d.mon]}</span>" : ""
+        cal << %(">#{cell_text}#{accessible}</td>)
       end unless last.wday == last_weekday
       cal << "</tr></tbody></table>"
     end

@@ -8,13 +8,16 @@ module ScheduleFu
     end
     
     def previous_sunday(date)
-      date
-      begin
-        date = Date.parse(date)
-      rescue
-        date = Time.now
-      end
+      date = parse_date_or_now(date)
       date.wday == 0 ? date : chronic_date('sunday', :now => date, :context => :past)
+    end
+    
+    def parse_date_or_now(date)
+      begin
+        Date.parse(date)
+      rescue
+        Time.now
+      end
     end
   end
 end
