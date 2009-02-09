@@ -4,8 +4,6 @@ require 'date'
 module ScheduleFu
   module CalendarHelper
   
-    VERSION = '0.2.2'
-  
     # Returns an HTML calendar. In its simplest form, this method generates a plain
     # calendar (which can then be customized using CSS) for a given month and year.
     # However, this may be customized in a variety of ways -- changing the default CSS
@@ -74,17 +72,10 @@ module ScheduleFu
       options = defaults.merge options
       vars = setup_variables(options)
       
-      # TODO Use some kind of builder instead of straight HTML
-      cal = %(<table class="#{options[:table_class]}" border="0" cellspacing="0" cellpadding="0">)
-      cal << %(<thead><tr>)
-      colspan = determine_colspan(cal, options)
-      cal << %(<th colspan="#{colspan}" class="#{options[:month_name_class]}">#{Date::MONTHNAMES[options[:month]]}</th>)
-      cal << %(<th colspan="2">#{options[:next_month_text]}</th>) if options[:next_month_text]
-      cal << %(</tr><tr class="#{options[:day_name_class]}">)
-      add_day_names(cal, options, vars)
-      cal << "</tr></thead><tbody><tr>"
-      fill_days(cal, options, vars, &block)
-      cal << "</tr></tbody></table>"
+      content_tag(:table, :class => options[:table_class], :border => 0, 
+          :cellspacing => 0, :cellpadding => 0) do
+        calendar_head(options, vars) + calendar_body(options, vars, &block)
+      end
     end
     
     private
@@ -144,16 +135,35 @@ module ScheduleFu
       vars
     end
     
-    def add_day_names(cal, options, vars)
-      day_names(vars[:first_weekday]).each do |d|
-        cal << "<th scope='col'>"
-        unless d[options[:abbrev]].eql? d
-          cal << "<abbr title='#{d}'>#{d[options[:abbrev]]}</abbr>"
-        else
-          cal << d[options[:abbrev]]
-        end
-        cal << "</th>"
+    def calendar_head(options, vars)
+      content_tag(:thead) do
+        contents = content_tag(:tr) do
+          text = ""
+          text << content_tag(:th, :colspan => determine_colspan(contents, options), 
+              :class => options[:month_name_class]) do
+            Date::MONTHNAMES[options[:month]]
+          end
+          text << content_tag(:th, options[:next_month_text], :colspan => 2) if options[:next_month_text]
+          text
       end
+        contents << content_tag(:tr, :class => options[:day_name_class]) do
+          add_day_names(options, vars)
+        end
+      end
+    end
+    
+    def add_day_names(options, vars)
+      text = ""
+      day_names(vars[:first_weekday]).each do |d|
+        text << content_tag(:th, :scope => 'col') do
+          unless d[options[:abbrev]].eql? d
+            content_tag(:abbr, d[options[:abbrev]], :title => d)
+          else
+            d[options[:abbrev]]
+          end
+        end
+      end
+      text
     end
     
     def day_names(first_weekday)
@@ -164,38 +174,50 @@ module ScheduleFu
       day_names
     end
     
-    def determine_colspan(cal, options)
+    def determine_colspan(contents, options)
       if options[:previous_month_text] || options[:next_month_text]
-        cal << %(<th colspan="2">#{options[:previous_month_text]}</th>)
+        contents << content_tag(:th, :colspan => 2) do
+          options[:previous_month_text]
+        end
         3
       else
         7
       end
     end
     
-    def fill_days(cal, options, vars, &block)
-      fill_days_last_month(cal, options, vars[:first], vars[:first_weekday], &block)
-      fill_days_this_month(cal, options, vars[:first], vars[:last], vars[:last_weekday], &block)
-      fill_days_next_month(cal, options, vars[:last], vars[:first_weekday], vars[:last_weekday], &block)
-    end
-    
-    def fill_days_last_month(cal, options, first, first_weekday, &block)
-      beginning_of_week(first, first_weekday).upto(first - 1) do |d|
-        cal <<fill_day(d, options, false, &block)
-      end unless first.wday == first_weekday
-    end
-    
-    def fill_days_this_month(cal, options, first, last, last_weekday, &block)
-      first.upto(last) do |d|
-        cal << fill_day(d, options, true, &block)
-        cal << "</tr><tr>" if d.wday == last_weekday
+    def calendar_body(options, vars, &block)
+      content_tag(:tbody) do
+          content_tag(:tr) do
+            text = fill_days_last_month(options, vars[:first], vars[:first_weekday], &block)
+            text << fill_days_this_month(options, vars[:first], vars[:last], vars[:last_weekday], &block)
+            text << fill_days_next_month(options, vars[:last], vars[:first_weekday], vars[:last_weekday], &block)
+          end
       end
     end
     
-    def fill_days_next_month(cal, options, last, first_weekday, last_weekday, &block)
+    def fill_days_last_month(options, first, first_weekday, &block)
+      text = ""
+      beginning_of_week(first, first_weekday).upto(first - 1) do |d|
+        text << fill_day(d, options, false, &block)
+      end unless first.wday == first_weekday
+      text
+    end
+    
+    def fill_days_this_month(options, first, last, last_weekday, &block)
+      text = ""
+      first.upto(last) do |d|
+        text << fill_day(d, options, true, &block)
+        text << "</tr><tr>" if d.wday == last_weekday
+      end
+      text
+    end
+    
+    def fill_days_next_month(options, last, first_weekday, last_weekday, &block)
+      text = ""
       (last + 1).upto(beginning_of_week(last + 7, first_weekday) - 1)  do |d|
-        cal << fill_day(d, options, false, &block)
+        text << fill_day(d, options, false, &block)
       end unless last.wday == last_weekday
+      text
     end
     
     def fill_day(d, options = nil, current = false, &block)
@@ -204,11 +226,11 @@ module ScheduleFu
       cell_attrs ||= {}
       cell_attrs[:class] ||= options[:day_class]
       cell_attrs[:class] += " weekendDay" if weekend?(d) 
-      cell_attrs[:class] += " today" if (d == Date.today) and options[:show_today]  
-      cell_attrs = cell_attrs.map {|k, v| %(#{k}="#{v}") }.join(" ")
-      text = "<td #{cell_attrs}>#{cell_text}"
-      text << accessible_text(options) if current
-      text << "</td>"
+      cell_attrs[:class] += " today" if (d == Date.today) and options[:show_today]
+      content_tag(:td, cell_attrs) do
+        text = cell_text
+        text << accessible_text(options) if current
+      end
     end
     
     def accessible_text(options)
