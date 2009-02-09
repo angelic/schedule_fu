@@ -69,83 +69,21 @@ module ScheduleFu
       raise(ArgumentError, "No year given")  unless options.has_key?(:year)
       raise(ArgumentError, "No month given") unless options.has_key?(:month)
   
-      block                        ||= Proc.new {|d| nil}
+      block ||= Proc.new {|d| nil}
   
-      defaults = {
-        :table_class => 'calendar',
-        :month_name_class => 'monthName',
-        :other_month_class => 'otherMonth',
-        :day_name_class => 'dayName',
-        :day_class => 'day',
-        :abbrev => (0..2),
-        :first_day_of_week => 0,
-        :accessible => false,
-        :show_today => true,
-        :previous_month_text => nil,
-        :next_month_text => nil
-      }
       options = defaults.merge options
-  
-      first = Date.civil(options[:year], options[:month], 1)
-      last = Date.civil(options[:year], options[:month], -1)
-  
-      first_weekday = first_day_of_week(options[:first_day_of_week])
-      last_weekday = last_day_of_week(options[:first_day_of_week])
+      vars = setup_variables(options)
       
-      day_names = Date::DAYNAMES.dup
-      first_weekday.times do
-        day_names.push(day_names.shift)
-      end
-  
       # TODO Use some kind of builder instead of straight HTML
       cal = %(<table class="#{options[:table_class]}" border="0" cellspacing="0" cellpadding="0">)
       cal << %(<thead><tr>)
-      if options[:previous_month_text] or options[:next_month_text]
-        cal << %(<th colspan="2">#{options[:previous_month_text]}</th>)
-        colspan=3
-      else
-        colspan=7
-      end
+      colspan = determine_colspan(cal, options)
       cal << %(<th colspan="#{colspan}" class="#{options[:month_name_class]}">#{Date::MONTHNAMES[options[:month]]}</th>)
       cal << %(<th colspan="2">#{options[:next_month_text]}</th>) if options[:next_month_text]
       cal << %(</tr><tr class="#{options[:day_name_class]}">)
-      day_names.each do |d|
-        unless d[options[:abbrev]].eql? d
-          cal << "<th scope='col'><abbr title='#{d}'>#{d[options[:abbrev]]}</abbr></th>"
-        else
-          cal << "<th scope='col'>#{d[options[:abbrev]]}</th>"
-        end
-      end
+      add_day_names(cal, options, vars)
       cal << "</tr></thead><tbody><tr>"
-      beginning_of_week(first, first_weekday).upto(first - 1) do |d|
-        cell_text, cell_attrs = block.call(d)
-        cell_text ||= d.day
-        cal << %(<td class="#{options[:other_month_class]})
-        cal << " weekendDay" if weekend?(d)
-        accessible = options[:accessible] ? 
-            "<span class='hidden'> #{Date::MONTHNAMES[d.mon]}</span>" : ""
-        cal << %(">#{cell_text}#{accessible}</td>)
-      end unless first.wday == first_weekday
-      first.upto(last) do |cur|
-        cell_text, cell_attrs = block.call(cur)
-        cell_text  ||= cur.mday
-        cell_attrs ||= {}
-        cell_attrs[:class] ||= options[:day_class]
-        cell_attrs[:class] += " weekendDay" if weekend?(cur) 
-        cell_attrs[:class] += " today" if (cur == Date.today) and options[:show_today]  
-        cell_attrs = cell_attrs.map {|k, v| %(#{k}="#{v}") }.join(" ")
-        cal << "<td #{cell_attrs}>#{cell_text}</td>"
-        cal << "</tr><tr>" if cur.wday == last_weekday
-      end
-      (last + 1).upto(beginning_of_week(last + 7, first_weekday) - 1)  do |d|
-        cell_text, cell_attrs = block.call(d)
-        cell_text ||= d.day
-        cal << %(<td class="#{options[:other_month_class]})
-        cal << " weekendDay" if weekend?(d)
-        accessible = options[:accessible] ? 
-            "<span class='hidden'> #{Date::MONTHNAMES[d.mon]}</span>" : ""
-        cal << %(">#{cell_text}#{accessible}</td>)
-      end unless last.wday == last_weekday
+      fill_days(cal, options, vars, &block)
       cal << "</tr></tbody></table>"
     end
     
@@ -180,5 +118,102 @@ module ScheduleFu
       [0, 6].include?(date.wday)
     end
     
+    def defaults
+      { 
+        :table_class => 'calendar',
+        :month_name_class => 'monthName',
+        :other_month_class => 'otherMonth',
+        :day_name_class => 'dayName',
+        :day_class => 'day',
+        :abbrev => (0..2),
+        :first_day_of_week => 0,
+        :accessible => false,
+        :show_today => true,
+        :previous_month_text => nil,
+        :next_month_text => nil
+      }
+    end
+    
+    def setup_variables(options)
+      vars = {}
+      vars[:first] = Date.civil(options[:year], options[:month], 1)
+      vars[:last] = Date.civil(options[:year], options[:month], -1)
+  
+      vars[:first_weekday] = first_day_of_week(options[:first_day_of_week])
+      vars[:last_weekday] = last_day_of_week(options[:first_day_of_week])
+      vars
+    end
+    
+    def add_day_names(cal, options, vars)
+      day_names(vars[:first_weekday]).each do |d|
+        cal << "<th scope='col'>"
+        unless d[options[:abbrev]].eql? d
+          cal << "<abbr title='#{d}'>#{d[options[:abbrev]]}</abbr>"
+        else
+          cal << d[options[:abbrev]]
+        end
+        cal << "</th>"
+      end
+    end
+    
+    def day_names(first_weekday)
+      day_names = Date::DAYNAMES.dup
+      first_weekday.times do
+        day_names.push(day_names.shift)
+      end
+      day_names
+    end
+    
+    def determine_colspan(cal, options)
+      if options[:previous_month_text] || options[:next_month_text]
+        cal << %(<th colspan="2">#{options[:previous_month_text]}</th>)
+        3
+      else
+        7
+      end
+    end
+    
+    def fill_days(cal, options, vars, &block)
+      fill_days_last_month(cal, options, vars[:first], vars[:first_weekday], &block)
+      fill_days_this_month(cal, options, vars[:first], vars[:last], vars[:last_weekday], &block)
+      fill_days_next_month(cal, options, vars[:last], vars[:first_weekday], vars[:last_weekday], &block)
+    end
+    
+    def fill_days_last_month(cal, options, first, first_weekday, &block)
+      beginning_of_week(first, first_weekday).upto(first - 1) do |d|
+        cal <<fill_day(d, options, false, &block)
+      end unless first.wday == first_weekday
+    end
+    
+    def fill_days_this_month(cal, options, first, last, last_weekday, &block)
+      first.upto(last) do |d|
+        cal << fill_day(d, options, true, &block)
+        cal << "</tr><tr>" if d.wday == last_weekday
+      end
+    end
+    
+    def fill_days_next_month(cal, options, last, first_weekday, last_weekday, &block)
+      (last + 1).upto(beginning_of_week(last + 7, first_weekday) - 1)  do |d|
+        cal << fill_day(d, options, false, &block)
+      end unless last.wday == last_weekday
+    end
+    
+    def fill_day(d, options = nil, current = false, &block)
+      cell_text, cell_attrs = block.call(d)
+      cell_text  ||= d.mday
+      cell_attrs ||= {}
+      cell_attrs[:class] ||= options[:day_class]
+      cell_attrs[:class] += " weekendDay" if weekend?(d) 
+      cell_attrs[:class] += " today" if (d == Date.today) and options[:show_today]  
+      cell_attrs = cell_attrs.map {|k, v| %(#{k}="#{v}") }.join(" ")
+      text = "<td #{cell_attrs}>#{cell_text}"
+      text << accessible_text(options) if current
+      text << "</td>"
+    end
+    
+    def accessible_text(options)
+      options[:accessible] ? 
+          "<span class='hidden'> #{Date::MONTHNAMES[d.mon]}</span>" : ""
+    end
   end
 end
