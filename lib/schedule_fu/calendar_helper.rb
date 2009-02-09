@@ -35,6 +35,8 @@ module ScheduleFu
     #                                           # Defaults to true.
     #   :previous_month_text   => nil           # Displayed left of the month name if set
     #   :next_month_text   => nil               # Displayed right of the month name if set
+    #   :month_name_array => Date::MONTHNAMES   # Array of months
+    #   :display_year => options[:year]         # Year to display
     #
     # For more customization, you can pass a code block to this method, that will get one argument, a Date object,
     # and return a values for the individual table cells. The block can return an array, [cell_text, cell_attrs],
@@ -69,7 +71,7 @@ module ScheduleFu
   
       block ||= Proc.new {|d| nil}
   
-      options = defaults.merge options
+      options = defaults(options).merge(options)
       vars = setup_variables(options)
       
       content_tag(:table, :class => options[:table_class], :border => 0, 
@@ -109,7 +111,7 @@ module ScheduleFu
       [0, 6].include?(date.wday)
     end
     
-    def defaults
+    def defaults(options)
       { 
         :table_class => 'calendar',
         :month_name_class => 'monthName',
@@ -121,7 +123,9 @@ module ScheduleFu
         :accessible => false,
         :show_today => true,
         :previous_month_text => nil,
-        :next_month_text => nil
+        :next_month_text => nil,
+        :month_name_array => Date::MONTHNAMES,
+        :display_year => options[:year]
       }
     end
     
@@ -141,7 +145,7 @@ module ScheduleFu
           text = ""
           text << content_tag(:th, :colspan => determine_colspan(text, options), 
               :class => options[:month_name_class]) do
-            Date::MONTHNAMES[options[:month]]
+            "#{options[:month_name_array][options[:month]]} #{options[:display_year]}"
           end
           text << content_tag(:th, options[:next_month_text], :colspan => 2) if options[:next_month_text]
           text
@@ -236,7 +240,7 @@ module ScheduleFu
     
     def accessible_text(options)
       options[:accessible] ? 
-          "<span class='hidden'> #{Date::MONTHNAMES[d.mon]}</span>" : ""
+          "<span class='hidden'> #{options[:month_name_array][d.mon]}</span>" : ""
     end
   end
 end
