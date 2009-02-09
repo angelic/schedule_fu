@@ -139,7 +139,7 @@ module ScheduleFu
       content_tag(:thead) do
         contents = content_tag(:tr) do
           text = ""
-          text << content_tag(:th, :colspan => determine_colspan(contents, options), 
+          text << content_tag(:th, :colspan => determine_colspan(text, options), 
               :class => options[:month_name_class]) do
             Date::MONTHNAMES[options[:month]]
           end
