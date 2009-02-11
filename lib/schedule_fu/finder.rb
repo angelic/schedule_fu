@@ -1,7 +1,9 @@
 module ScheduleFu
   module Finder
+    include ScheduleFu::Parser
+    
     def conditions_for_date_finders(*args)
-      dates = Calendar.parse(*args)
+      dates = parse(*args)
       case dates
         when Date then ['value = ?', dates]
         when Range then ['value BETWEEN ? AND ?', dates.first, dates.last]

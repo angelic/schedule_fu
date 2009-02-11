@@ -1,6 +1,6 @@
 class CalendarDate < ActiveRecord::Base
-  belongs_to :calendar
-
+  extend ScheduleFu::Finder
+  
   # discrete event occurrences
   has_and_belongs_to_many(:occurrences,
     {:class_name=>'CalendarEvent', :join_table=>'calendar_occurrences'})
@@ -10,13 +10,31 @@ class CalendarDate < ActiveRecord::Base
   # actual events, including occurrences and recurrences
   has_many :events, :through => :calendar_event_dates
 
-  validates_presence_of :calendar
   validates_presence_of :value
   validates_inclusion_of :weekday, :in => 0..6
   validates_inclusion_of :monthday, :in => 1..31
   validates_inclusion_of :monthweek, :in => 0..4
 
   before_validation_on_create :derive_date_parts
+
+  named_scope :by_dates, lambda {|*args| {:conditions => conditions_for_date_finders(*args)}}
+  named_scope :by_values, lambda{|*args| {:conditions => ["value in (?)", args]}}
+  
+  def self.find_by_value(value)
+    find(:first, :conditions => { :value => value })
+  end
+  
+  def self.create_for_dates(start_date = nil, end_date = nil)
+    start_date ||= Date.today
+    end_date ||= 5.years.since(start_date)
+    (start_date .. end_date).each do |date|
+      begin
+        self.create(:value => date)
+      rescue
+        next
+      end
+    end
+  end
 
   private
 
