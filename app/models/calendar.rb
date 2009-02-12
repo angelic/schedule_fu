@@ -1,12 +1,19 @@
 class Calendar < ActiveRecord::Base
-  extend ScheduleFu::Parser
   include ScheduleFu::Finder
   
   has_many(:events, {:class_name=>'CalendarEvent', :dependent=>:destroy}) do
+    extend ScheduleFu::Parser
     include ScheduleFu::Finder
     
-    def create_for(*args)
-      dates = Calendar.parse(*args)
+    def create_for(event_type, attribs)
+      dates = parse_recurrence_by_type(event_type, {}) # TODO: make recurrence work
+      unless dates
+        if !attribs[:start_date].blank? && !attribs[:end_date].blank?
+          dates = (attribs[:start_date].to_date..attribs[:end_date].to_date)
+        else
+          dates = attribs[:start_date].to_date
+        end
+      end
       event = create
       process_dates(dates, event)
       event
@@ -25,6 +32,7 @@ class Calendar < ActiveRecord::Base
             raise ArgumentError if date.kind_of?(Enumerable)
             process_dates(date, event)
           end
+        when nil
         else
           raise ArgumentError
       end

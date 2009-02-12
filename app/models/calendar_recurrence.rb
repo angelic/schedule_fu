@@ -12,18 +12,30 @@ class CalendarRecurrence < ActiveRecord::Base
     errors.add_to_base('Invalid pattern') if ((!monthweek.nil? || !monthweek.nil?) && !monthday.nil?)
   end
 
+  def daily?
+    weekday.blank? && monthweek.blank? && monthday.blank? && month.blank?
+  end
+  
   # Just a monthday or a monthweek and a weekday
   def monthly?
-    (!monthday.nil? && monthweek.nil? && weekday.nil?) || 
-      (monthday.nil? && !monthweek.nil? && !weekday.nil?)
+    !yearly && ((!monthday.blank? && montheek.blank? && weekday.blank?) || 
+        (monthday.blank? && !monthweek.blank? && !weekday.blank?))
   end
 
   # No monthday and a weekday
   def weekly?
-    monthday.nil? && !weekday.nil? && monthweek.nil?
+    !yearly? && monthday.blank? && !weekday.blank? && monthweek.blank?
   end
   
   def yearly?
-    !month.nil?
+    !month.blank?
+  end
+  
+  def recurrence_type
+    if yearly? then :yearly
+    elsif daily? then :daily
+    elsif weekly? then :weekly
+    elsif monthly? then :monthly
+    end
   end
 end

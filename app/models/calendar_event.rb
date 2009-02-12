@@ -6,7 +6,7 @@ class CalendarEvent < ActiveRecord::Base
     {:class_name=>'CalendarDate', :join_table=>'calendar_occurrences'})
 
   # recurring date patterns
-  has_many(:recurrences, {:class_name=>'CalendarRecurrence'})
+  has_many :recurrences, :class_name=>'CalendarRecurrence'
 
   has_many :calendar_event_dates, :readonly => true
 
@@ -41,5 +41,16 @@ class CalendarEvent < ActiveRecord::Base
         'BYDAY' => weekly.map {|w| Icalendar::DAYCODES[w]}.join(',')}
     end
     rrules
+  end
+  
+  def recurrence_type
+    if recurrences.blank?
+      :norepeat
+    elsif recurrences.size > 4 && 
+        ((1..5).to_a - recurrences.collect {|r| r.weekday}).size == 0
+      :weekdays
+    else 
+      recurrence.first.recurrence_type
+    end
   end
 end
