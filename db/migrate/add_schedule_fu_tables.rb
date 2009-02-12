@@ -41,20 +41,21 @@ class AddScheduleFuTables < ActiveRecord::Migration
     execute "
 CREATE VIEW calendar_event_dates AS
 SELECT
-ce.id AS calendar_event_id,
-cd.id AS calendar_date_id
+  ce.id AS calendar_event_id,
+  cd.id AS calendar_date_id
 FROM calendar_dates cd
 INNER JOIN calendar_events ce ON cd.holiday = 'f' 
-AND (ce.start_date IS NULL OR cd.value >= ce.start_date)
-AND (ce.end_date IS NULL OR cd.value <= ce.end_date)
+  AND (ce.start_date IS NULL OR cd.value >= ce.start_date)
+  AND (ce.end_date IS NULL OR cd.value <= ce.end_date)
 LEFT OUTER JOIN calendar_occurrences co
-ON co.calendar_event_id = ce.id
-AND co.calendar_date_id = cd.id
+  ON co.calendar_event_id = ce.id
+  AND co.calendar_date_id = cd.id
 LEFT OUTER JOIN calendar_recurrences cr ON cr.calendar_event_id = ce.id
-AND ((cr.monthday IS NOT NULL AND cd.monthday = cr.monthday)
-OR (cr.monthday IS NULL AND cr.weekday IS NOT NULL
-AND cd.weekday = cr.weekday
-AND (cr.monthweek IS NULL OR cd.monthweek = cr.monthweek OR (cr.monthweek = -1 AND cd.lastweek = -1))
+  AND ((cr.monthday IS NOT NULL AND cd.monthday = cr.monthday)
+  OR (cr.monthday IS NULL AND cr.weekday IS NOT NULL
+    AND cd.weekday = cr.weekday
+    AND (cr.monthweek IS NULL OR cd.monthweek = cr.monthweek 
+    OR (cr.monthweek = -1 AND cd.lastweek = -1))
 )
 )
 WHERE cr.id IS NOT NULL OR co.calendar_event_id IS NOT NULL
