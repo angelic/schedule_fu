@@ -55,6 +55,7 @@ LEFT OUTER JOIN calendar_occurrences co
 LEFT OUTER JOIN calendar_recurrences cr ON cr.calendar_event_id = ce.id
   AND (cr.month IS NULL OR cr.month = cd.month)
   AND ((cr.monthday IS NOT NULL AND cd.monthday = cr.monthday)
+  OR (cr.monthday is NULL AND cr.weekday IS NULL)
   OR (cr.monthday IS NULL AND cr.weekday IS NOT NULL
     AND cd.weekday = cr.weekday
     AND (cr.monthweek IS NULL OR cd.monthweek = cr.monthweek 

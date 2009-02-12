@@ -9,7 +9,7 @@ class CalendarRecurrence < ActiveRecord::Base
   validate :validate_pattern
 
   def validate_pattern
-    errors.add_to_base('Invalid pattern') if !(monthly? || weekly?)
+    errors.add_to_base('Invalid pattern') if ((!monthweek.nil? || !monthweek.nil?) && !monthday.nil?)
   end
 
   # Just a monthday or a monthweek and a weekday
@@ -21,5 +21,9 @@ class CalendarRecurrence < ActiveRecord::Base
   # No monthday and a weekday
   def weekly?
     monthday.nil? && !weekday.nil? && monthweek.nil?
+  end
+  
+  def yearly?
+    !month.nil?
   end
 end
