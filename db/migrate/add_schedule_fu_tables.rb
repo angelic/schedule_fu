@@ -10,6 +10,7 @@ class AddScheduleFuTables < ActiveRecord::Migration
       t.column :weekday, :integer, :limit => 1, :null=>false
       t.column :monthweek, :integer, :limit => 1, :null=>false
       t.column :monthday, :integer, :limit => 1, :null=>false
+      t.column :month, :integer, :limit => 1, :null=>false
       t.column :lastweek, :integer, :limit => 1, :null=>false, :default=>0
       t.column :holiday, :boolean, :null=>false, :default=>false
     end
@@ -35,6 +36,7 @@ class AddScheduleFuTables < ActiveRecord::Migration
       t.column :weekday, :integer, :limit => 1
       t.column :monthweek, :integer, :limit => 1
       t.column :monthday, :integer, :limit => 1
+      t.column :month, :integer, :limit => 1
     end
  
     # FIXME - quote embedded holiday parameter
@@ -51,6 +53,7 @@ LEFT OUTER JOIN calendar_occurrences co
   ON co.calendar_event_id = ce.id
   AND co.calendar_date_id = cd.id
 LEFT OUTER JOIN calendar_recurrences cr ON cr.calendar_event_id = ce.id
+  AND (cr.month IS NULL OR cr.month = cd.month)
   AND ((cr.monthday IS NOT NULL AND cd.monthday = cr.monthday)
   OR (cr.monthday IS NULL AND cr.weekday IS NOT NULL
     AND cd.weekday = cr.weekday

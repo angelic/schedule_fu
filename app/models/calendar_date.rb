@@ -57,11 +57,11 @@ class CalendarDate < ActiveRecord::Base
     self.monthday = value.mday
     self.monthweek = monthday / 7
     date = value
-    month = date.month
+    self.month = date.month
     days_until_next_month = 0
     while date = date.next
       days_until_next_month += 1
-      break if date.month != month
+      break if date.month != self.month
     end
     if days_until_next_month <= 7
       self.lastweek = -1
