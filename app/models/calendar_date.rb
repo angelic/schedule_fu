@@ -36,6 +36,20 @@ class CalendarDate < ActiveRecord::Base
     end
   end
 
+  def self.get_and_create_dates(range)
+    dates = self.by_dates(range)
+    if dates.size < range.to_a.size
+      CalendarDate.create_for_dates(range.first, range.last)
+      Thread.new do
+        start_date = 1.year.ago(range.first).to_date
+        end_date = 1.year.since(range.last).to_date
+        CalendarDate.create_for_dates(start_date, end_date)
+      end
+      dates = self.by_dates(range)
+    end
+    dates
+  end
+  
   private
 
   def derive_date_parts
