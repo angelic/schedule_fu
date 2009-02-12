@@ -3,7 +3,8 @@ class AddScheduleFuTables < ActiveRecord::Migration
     create_table :calendars do |t|
       t.column :desc, :text
     end
- 
+    Calendar.create
+    
     create_table :calendar_dates do |t|
       t.column :value, :date, :null=>false
       t.column :weekday, :integer, :limit => 1, :null=>false
@@ -21,6 +22,7 @@ class AddScheduleFuTables < ActiveRecord::Migration
       t.column :start_time, :time
       t.column :end_time, :time
       t.column :desc, :text
+      t.column :long_desc, :text
     end
  
     create_table :calendar_occurrences, :id => false do |t|
