@@ -64,9 +64,7 @@ class CalendarDate < ActiveRecord::Base
       break if date.month != self.month
     end
     if days_until_next_month <= 7
-      self.lastweek = -1
-    else
-      self.lastweek = 0
+      self.lastweek = true
     end
   end
 end

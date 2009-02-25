@@ -10,7 +10,7 @@ end
 Factory.define :calendar_date do |date|
   date.value '2008-01-01'
   date.association :calendar, :factory => :calendar
-  date.holiday 0
+  date.holiday false
 end
 
 Factory.define :calendar_recurrence do |recurrence|

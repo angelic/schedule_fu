@@ -11,7 +11,7 @@ class AddScheduleFuTables < ActiveRecord::Migration
       t.column :monthweek, :integer, :limit => 1, :null=>false
       t.column :monthday, :integer, :limit => 1, :null=>false
       t.column :month, :integer, :limit => 1, :null=>false
-      t.column :lastweek, :integer, :limit => 1, :null=>false, :default=>0
+      t.column :lastweek, :boolean, :null=>false, :default=>false
       t.column :holiday, :boolean, :null=>false, :default=>false
     end
     add_index :calendar_dates, :value, :unique => true
@@ -59,7 +59,7 @@ LEFT OUTER JOIN calendar_recurrences cr ON cr.calendar_event_id = ce.id
   OR (cr.monthday IS NULL AND cr.weekday IS NOT NULL
     AND cd.weekday = cr.weekday
     AND (cr.monthweek IS NULL OR cd.monthweek = cr.monthweek 
-    OR (cr.monthweek = -1 AND cd.lastweek = -1))
+    OR (cr.monthweek = -1 AND cd.lastweek = 't'))
 )
 )
 WHERE cr.id IS NOT NULL OR co.calendar_event_id IS NOT NULL
