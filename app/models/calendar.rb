@@ -7,11 +7,11 @@ class Calendar < ActiveRecord::Base
     
     def create_for(event_type, attribs)
       dates = parse_recurrence_by_type(event_type, {}) # TODO: make recurrence work
-      unless dates
-        if !attribs[:start_date].blank? && !attribs[:end_date].blank?
-          dates = (attribs[:start_date].to_date..attribs[:end_date].to_date)
+      unless dates 
+        if attribs[:from_date] && attribs[:to_date]
+          dates = (parse_date(attribs[:from_date])..parse_date(attribs[:to_date]))
         else
-          dates = attribs[:start_date].to_date
+          dates = parse_date(attribs[:from_date])
         end
       end
       event = create
@@ -29,7 +29,7 @@ class Calendar < ActiveRecord::Base
         when Hash then event.recurrences.create(dates)
         when Enumerable
           dates.each do |date|
-            raise ArgumentError if date.kind_of?(Enumerable)
+#            raise ArgumentError if date.kind_of?(Enumerable)
             process_dates(date, event)
           end
         when nil
