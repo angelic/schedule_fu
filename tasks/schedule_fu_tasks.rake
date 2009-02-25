@@ -1,4 +1,6 @@
 # Initializer must be run or we get uninitialized class variable @@configuration (introduced w/rails 2.1)
+ENV['RAILS_ROOT'] ||= File.dirname(__FILE__) + '/../../../..' 
+require File.expand_path(File.join(ENV['RAILS_ROOT'], 'config/environment.rb'))
 Rails::Initializer.run
 require 'rails_generator' 
 require 'rails_generator/scripts/generate' 
