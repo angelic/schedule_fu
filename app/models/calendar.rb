@@ -6,7 +6,7 @@ class Calendar < ActiveRecord::Base
     include ScheduleFu::Finder
     
     def create_for(event_type, attribs)
-      dates = parse_recurrence_by_type(event_type, {}) # TODO: make recurrence work
+      dates = parse_recurrence_by_type(event_type, {})
       unless dates
         s_date = parse_date(attribs[:start_date])
         e_date = parse_date(attribs[:end_date])

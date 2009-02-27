@@ -31,7 +31,7 @@ module ScheduleFu
     end
   
     def parse_recurrence_by_type(event_type, recurrent_arr = [])
-      case event_type
+      case event_type.to_sym
         when :norepeat then nil
         when :daily then {}
         when :weekdays then (1..5).collect {|d| {:weekday => d}}
