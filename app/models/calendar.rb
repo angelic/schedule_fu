@@ -1,49 +1,7 @@
 class Calendar < ActiveRecord::Base
   include ScheduleFu::Finder
   
-  has_many(:events, {:class_name=>'CalendarEvent', :dependent=>:destroy}) do
-    extend ScheduleFu::Parser
-    include ScheduleFu::Finder
-    
-    def create_for(event_type, attribs)
-      dates = parse_recurrence_by_type(event_type, {})
-      unless dates
-        s_date = parse_date(attribs[:start_date])
-        e_date = parse_date(attribs[:end_date])
-        if s_date && e_date
-          CalendarDate.get_and_create_dates(s_date..e_date)
-          dates = (s_date..e_date)
-        elsif s_date
-          CalendarDate.get_and_create_dates(s_date..s_date)
-          dates = s_date
-        else
-          return nil
-        end
-      end
-      event = create
-      process_dates(dates, event)
-      event
-    end
-
-    def find_by_dates(*args)
-      find(:all, { :joins => :dates, :conditions => conditions_for_date_finders(*args) })
-    end
-    
-    def process_dates(dates, event)
-      case dates
-        when Date then event.occurrences << CalendarDate.by_values(dates)
-        when Hash then event.recurrences.create(dates)
-        when Enumerable
-          dates.each do |date|
-#            raise ArgumentError if date.kind_of?(Enumerable)
-            process_dates(date, event)
-          end
-        when nil
-        else
-          raise ArgumentError
-      end
-    end
-  end
+  has_many :events, :class_name=>'CalendarEvent', :dependent=>:destroy
   
   def max_events_per_day_without_time_set(*args)
     conditions = conditions_for_date_finders(*args)

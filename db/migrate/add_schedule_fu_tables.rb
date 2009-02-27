@@ -16,8 +16,20 @@ class AddScheduleFuTables < ActiveRecord::Migration
     end
     add_index :calendar_dates, :value, :unique => true
  
+    create_table :calendar_event_types do |t|
+      t.column :name, :string
+      t.column :desc, :string
+    end
+    create_event_type "norepeat", "Does not repeat"
+    create_event_type "weekdays", "Weekdays (M-F)"
+    create_event_type "daily", "Daily"
+    create_event_type "weekly", "Weekly"
+    create_event_type "monthly", "Monthly"
+    create_event_type "yearly", "Yearly"
+
     create_table :calendar_events do |t|
       t.column :calendar_id, :integer, :null=>false
+      t.column :calendar_event_type, :integer
       t.column :start_date, :date
       t.column :end_date, :date
       t.column :start_time, :time
@@ -71,6 +83,7 @@ WHERE cr.id IS NOT NULL OR co.calendar_event_id IS NOT NULL
     drop_table :calendar_recurrences
     drop_table :calendar_occurrences
     drop_table :calendar_events
+    drop_table :calendar_event_types
     remove_index :calendar_dates, :value
     drop_table :calendar_dates
     drop_table :calendars

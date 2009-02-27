@@ -30,19 +30,6 @@ module ScheduleFu
       parse_recurring_dates(string) || parse_specific_dates(string)
     end
   
-    def parse_recurrence_by_type(event_type, recurrent_arr = [])
-      case event_type.to_sym
-        when :norepeat then nil
-        when :daily then {}
-        when :weekdays then (1..5).collect {|d| {:weekday => d}}
-        when :weekly
-          recurrent_arr.each {|e| e.delete(:monthweek); e.delete(:monthday)}
-        when :monthly
-          recurrent_arr.each {|e| e.delete(:month)}
-        when :yearly then recurrent_arr
-      end
-    end
-    
     private
   
     def parse_specific_dates(value)

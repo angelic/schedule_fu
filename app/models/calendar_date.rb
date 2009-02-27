@@ -14,6 +14,7 @@ class CalendarDate < ActiveRecord::Base
   validates_inclusion_of :weekday, :in => 0..6
   validates_inclusion_of :monthday, :in => 1..31
   validates_inclusion_of :monthweek, :in => 0..4
+  validates_inclusion_of :month, :in => 1..12
 
   before_validation_on_create :derive_date_parts
 
