@@ -8,14 +8,16 @@ class Calendar < ActiveRecord::Base
     def create_for(event_type, attribs)
       dates = parse_recurrence_by_type(event_type, {}) # TODO: make recurrence work
       unless dates
-        f_date = parse_date(attribs[:from_date])
-        t_date = parse_date(attribs[:to_date])
-        if f_date && t_date
-          CalendarDate.get_and_create_dates(f_date..t_date)
-          dates = (f_date..t_date)
+        s_date = parse_date(attribs[:start_date])
+        e_date = parse_date(attribs[:end_date])
+        if s_date && e_date
+          CalendarDate.get_and_create_dates(s_date..e_date)
+          dates = (s_date..e_date)
+        elsif s_date
+          CalendarDate.get_and_create_dates(s_date..s_date)
+          dates = parse_date(s_date)
         else
-          CalendarDate.get_and_create_dates(f_date..f_date)
-          dates = parse_date(f_date)
+          return nil
         end
       end
       event = create

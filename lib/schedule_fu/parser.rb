@@ -23,6 +23,10 @@ module ScheduleFu
     def parse_date(string)
       if time = Chronic.parse(string)
         time.send(:to_date)
+      elsif !string.nil?
+        begin
+          Date.parse(string)
+        rescue; end
       end
     end
   
