@@ -9,7 +9,7 @@ module ScheduleFu
     
     def previous_sunday(date)
       date = parse_date_or_now(date)
-      date.wday == 0 ? date : chronic_date('sunday', :now => date, :context => :past)
+      date.wday.ago date
     end
     
     def parse_date_or_now(date)
