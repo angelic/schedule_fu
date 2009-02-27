@@ -1,5 +1,3 @@
-require 'chronic'
-
 # Some methods for parsing date expressions from strings
 module ScheduleFu
   module Parser
@@ -21,9 +19,7 @@ module ScheduleFu
     end
   
     def parse_date(string)
-      if time = Chronic.parse(string)
-        time.send(:to_date)
-      elsif !string.nil?
+      unless string.nil?
         begin
           Date.parse(string)
         rescue; end

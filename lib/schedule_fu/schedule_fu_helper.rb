@@ -1,11 +1,5 @@
-require 'chronic'
-
 module ScheduleFu
   module ScheduleFuHelper
-    
-    def chronic_date(*args)
-      Chronic.parse(*args).to_date
-    end
     
     def previous_sunday(date)
       date = parse_date_or_now(date)
@@ -16,7 +10,7 @@ module ScheduleFu
       begin
         Date.parse(date)
       rescue
-        Time.now
+        Time.now.to_date
       end
     end
   end

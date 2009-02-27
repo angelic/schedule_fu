@@ -15,7 +15,7 @@ class Calendar < ActiveRecord::Base
           dates = (s_date..e_date)
         elsif s_date
           CalendarDate.get_and_create_dates(s_date..s_date)
-          dates = parse_date(s_date)
+          dates = s_date
         else
           return nil
         end
