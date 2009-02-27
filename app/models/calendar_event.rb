@@ -8,10 +8,10 @@ class CalendarEvent < ActiveRecord::Base
   # recurring date patterns
   has_many :recurrences, :class_name=>'CalendarRecurrence'
 
-  has_many :calendar_event_dates, :readonly => true
+  has_many :event_dates, :class_name=>'CalendarEventDate', :readonly => true
 
   # actual dates, including occurrences and recurrences
-  has_many :dates, :through => :calendar_event_dates, :readonly => true
+  has_many :dates, :through => :event_dates, :readonly => true
 
   validates_presence_of :calendar
 
@@ -46,7 +46,7 @@ class CalendarEvent < ActiveRecord::Base
   def recurrence_type
     if recurrences.blank?
       :norepeat
-    elsif recurrences.size > 4 && 
+    elsif recurrences.size == 5 && 
         ((1..5).to_a - recurrences.collect {|r| r.weekday}).size == 0
       :weekdays
     else 
