@@ -111,12 +111,16 @@ class CalendarEvent < ActiveRecord::Base
   
   def add_occurrences
     if event_type.name == "norepeat"
+      self.recurrences = []
+      self.occurrences = []
       date_range.each {|d| self.occurrences << CalendarDate.by_values(d) }
     end
   end
   
   def add_recurrences
     unless event_type.name == "norepeat"
+      self.recurrences = []
+      self.occurrences = []
       self.recurrences.create(parse_recurrence_params_by_type)
     end
   end
