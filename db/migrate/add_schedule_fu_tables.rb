@@ -29,7 +29,7 @@ class AddScheduleFuTables < ActiveRecord::Migration
 
     create_table :calendar_events do |t|
       t.column :calendar_id, :integer, :null=>false
-      t.column :calendar_event_type, :integer
+      t.column :calendar_event_type_id, :integer
       t.column :start_date, :date
       t.column :end_date, :date
       t.column :start_time, :time

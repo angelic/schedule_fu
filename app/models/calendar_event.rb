@@ -1,6 +1,7 @@
 class CalendarEvent < ActiveRecord::Base
   belongs_to :calendar
-  belongs_to :event_type, :class_name => 'CalendarEventType'
+  belongs_to :event_type, :class_name => 'CalendarEventType', 
+      :foreign_key => :calendar_event_type_id
 
   # discrete event occurrences
   has_and_belongs_to_many(:occurrences, 
@@ -14,10 +15,31 @@ class CalendarEvent < ActiveRecord::Base
   # actual dates, including occurrences and recurrences
   has_many :dates, :through => :event_dates, :readonly => true
 
-  attr_accessor :repeat_by # valid values are weekday and monthday
-  (0..6).each {|n| attr_accessor "repeat_#{n}".to_sym }
+  attr_writer :repeat_by # valid values are weekday and monthday
+  (0..6).each do |n|
+     attr_accessor "_repeat_#{n}".to_sym
+     
+     define_method "repeat_#{n}=" do |*args|
+       sym = "@repeat_#{n}".to_sym
+       self.instance_variable_set(sym, args.first)
+       self.instance_variable_set(sym, args.first)
+     end
+     
+     define_method "repeat_#{n}" do
+       var = self.instance_variable_get("@repeat_#{n}".to_sym)
+       return var if var
+       var = false
+       recurrences.each do |r|
+         if r.weekday == n
+           var = true 
+           break
+         end
+       end
+       var
+     end
+   end
   
-  validates_presence_of :calendar, :start_date, :event_type
+  validates_presence_of :calendar, :start_date, :calendar_event_type_id
   before_save :create_dates_for_range
   after_save :add_occurrences
   after_save :add_recurrences
@@ -25,13 +47,16 @@ class CalendarEvent < ActiveRecord::Base
   named_scope :with_time_set, :conditions => 'start_time IS NOT NULL AND end_time IS NOT NULL'
   named_scope :without_time_set, :conditions => 'start_time IS NULL OR end_time IS NULL'
   
-  def calendar_event_type_id=(value)
-    if value.kind_of?(String)
-      t = CalendarEventType.find_by_name(value)
+  def repeat_by
+    var = self.instance_variable_get(:@repeat_by)
+    if var
+      var
+    elsif recurrences.count == 0
+    elsif recurrences.first.weekday
+      "weekday"
     else 
-      t = CalendarEventType.find(value)
+      "monthday"
     end
-    self.event_type = t
   end
   
   def to_rrules
@@ -74,6 +99,10 @@ class CalendarEvent < ActiveRecord::Base
     e_date = self.end_date.blank? ? self.start_date : self.end_date
     self.start_date..e_date
   end
+
+  def is_event_type?(t)
+    event_type && event_type.name == t
+  end
   
   protected
   def create_dates_for_range
@@ -110,6 +139,7 @@ class CalendarEvent < ActiveRecord::Base
   end
   
   def parse_monthly_attrs
+    return unless self.repeat_by
     case self.repeat_by.to_sym
       when :monthday then {:monthday => start_date.mday}
       when :weekday then {:weekday => start_date.wday, :monthweek => start_date.mday / 7}
