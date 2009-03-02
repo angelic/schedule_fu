@@ -1,7 +1,7 @@
 class Calendar < ActiveRecord::Base
   include ScheduleFu::Finder
   
-  has_many :events, :class_name=>'CalendarEvent', :dependent=>:destroy
+  has_many :events, :class_name=>'CalendarEvent', :dependent => :destroy
   
   def max_events_per_day_without_time_set(*args)
     conditions = conditions_for_date_finders(*args)

@@ -4,11 +4,11 @@ class CalendarEvent < ActiveRecord::Base
       :foreign_key => :calendar_event_type_id
 
   # discrete event occurrences
-  has_and_belongs_to_many(:occurrences, 
-    {:class_name=>'CalendarDate', :join_table=>'calendar_occurrences'})
+  has_and_belongs_to_many :occurrences, :class_name => 'CalendarDate', 
+      :join_table => 'calendar_occurrences'
 
   # recurring date patterns
-  has_many :recurrences, :class_name=>'CalendarRecurrence'
+  has_many :recurrences, :class_name=>'CalendarRecurrence', :dependent => :destroy
 
   has_many :event_dates, :class_name=>'CalendarEventDate', :readonly => true
 
