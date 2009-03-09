@@ -138,7 +138,7 @@ class CalendarEvent < ActiveRecord::Base
   
   def parse_weekly_attrs
     arr = []
-    (0..6).each {|n| arr << {:weekday => n} if self.send("repeat_#{n}").to_s == 'true' }
+    (0..6).each {|n| arr << {:weekday => n} if self.send("repeat_#{n}").to_s == '1' }
     arr
   end
   
