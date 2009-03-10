@@ -1,6 +1,6 @@
+require 'set'
 class CalendarDate < ActiveRecord::Base
   extend ScheduleFu::Finder
-  require 'set'
   
   # discrete event occurrences
   has_and_belongs_to_many(:occurrences,
@@ -39,6 +39,8 @@ class CalendarDate < ActiveRecord::Base
     end
   end
 
+  @@create_lock = Mutex.new
+  
   def self.get_and_create_dates(range)
     range = range.first.to_date..range.last.to_date
     dates = self.by_dates(range)
@@ -47,7 +49,9 @@ class CalendarDate < ActiveRecord::Base
       Thread.new do
         start_date = 1.year.ago(range.first).to_date
         end_date = 1.year.since(range.last).to_date
-        CalendarDate.create_for_dates(start_date, end_date)
+        @@create_lock.synchronize do
+          CalendarDate.create_for_dates(start_date, end_date)
+        end
       end
       dates = self.by_dates(range)
     end
