@@ -97,7 +97,7 @@ class CalendarEvent < ActiveRecord::Base
   
   def date_range
     e_date = self.end_date.blank? ? self.start_date : self.end_date
-    self.start_date..e_date
+    self.start_date.to_date..e_date.to_date
   end
 
   def is_event_type?(t)

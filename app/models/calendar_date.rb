@@ -1,5 +1,6 @@
 class CalendarDate < ActiveRecord::Base
   extend ScheduleFu::Finder
+  require 'set'
   
   # discrete event occurrences
   has_and_belongs_to_many(:occurrences,
@@ -28,16 +29,18 @@ class CalendarDate < ActiveRecord::Base
   def self.create_for_dates(start_date = nil, end_date = nil)
     start_date ||= Date.today
     end_date ||= 5.years.since(start_date)
-    (start_date .. end_date).each do |date|
+    range = start_date..end_date
+    existing_dates = Set.new
+    self.by_dates(range).each {|d| existing_dates << d.value }
+    range.each do |date|
       begin
-        self.create(:value => date)
-      rescue
-        next
-      end
+        self.create(:value => date) unless existing_dates.include?(date)
+      rescue; end
     end
   end
 
   def self.get_and_create_dates(range)
+    range = range.first.to_date..range.last.to_date
     dates = self.by_dates(range)
     if dates.size < range.to_a.size
       CalendarDate.create_for_dates(range.first, range.last)
