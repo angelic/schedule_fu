@@ -2,13 +2,7 @@ require 'set'
 class CalendarDate < ActiveRecord::Base
   extend ScheduleFu::Finder
   
-  # discrete event occurrences
-  has_and_belongs_to_many(:occurrences,
-    {:class_name=>'CalendarEvent', :join_table=>'calendar_occurrences'})
-
   has_many :event_dates, :class_name=>'CalendarEventDate', :readonly => true
-
-  # actual events, including occurrences and recurrences
   has_many :events, :through => :event_dates
 
   validates_presence_of :value
@@ -63,7 +57,7 @@ class CalendarDate < ActiveRecord::Base
   def derive_date_parts
     self.weekday = value.wday
     self.monthday = value.mday
-    self.monthweek = monthday / 7
+    self.monthweek = (monthday - 1) / 7
     date = value
     self.month = date.month
     days_until_next_month = 0
