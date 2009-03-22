@@ -29,8 +29,8 @@ class CalendarEvent < ActiveRecord::Base
   # after_save :add_occurrences
   after_save :add_recurrences
 
-  named_scope :with_time_set, :conditions => 'start_time IS NOT NULL AND end_time IS NOT NULL'
-  named_scope :without_time_set, :conditions => 'start_time IS NULL OR end_time IS NULL'
+  named_scope :with_time_set, :conditions => 'calendar_event_dates.start_time IS NOT NULL AND calendar_event_dates.end_time IS NOT NULL'
+  named_scope :without_time_set, :conditions => 'calendar_event_dates.start_time IS NULL OR calendar_event_dates.end_time IS NULL'
   
   # def to_rrules
   #   return nil unless recurrences

@@ -86,7 +86,7 @@ class AddScheduleFuTables < ActiveRecord::Migration
         COALESCE(cem.end_time, ce.end_time) 
           AS end_time,
         COALESCE(cem.desc, ce.desc) 
-          AS desc,
+          AS 'desc',
         COALESCE(cem.long_desc, ce.long_desc) 
           AS long_desc,
         cr.id IS NULL
@@ -126,10 +126,11 @@ class AddScheduleFuTables < ActiveRecord::Migration
             AND (
               #{monthly_and_yearly_where_sql}
             ) OR (
-            ce.calendar_event_type_id = #{yearly_id}
-            AND cd.month = cr.month 
-            AND (
-              #{monthly_and_yearly_where_sql}
+              ce.calendar_event_type_id = #{yearly_id}
+              AND cd.month = cr.month 
+              AND (
+                #{monthly_and_yearly_where_sql}
+              )
             )
           )
         );
@@ -145,5 +146,9 @@ class AddScheduleFuTables < ActiveRecord::Migration
     remove_index :calendar_dates, :value
     drop_table :calendar_dates
     drop_table :calendars
+  end
+
+  def self.create_event_type(name, desc)
+    CalendarEventType.create(:name => name, :desc => desc)
   end
 end
