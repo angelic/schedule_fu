@@ -3,7 +3,7 @@ class CalendarEvent < ActiveRecord::Base
   belongs_to :event_type, :class_name => 'CalendarEventType', 
       :foreign_key => :calendar_event_type_id
 
-  has_many :mods, :class_name => 'CalendarEventModification'
+  has_many :mods, :class_name => 'CalendarEventMod', :dependent => :destroy
   has_many :recurrences, :class_name=>'CalendarRecurrence', :dependent => :destroy
   has_many :event_dates, :class_name=>'CalendarEventDate', :readonly => true
   has_many :dates, :through => :event_dates, :readonly => true
