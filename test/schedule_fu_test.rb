@@ -1,8 +1,9 @@
 require 'test_helper'
 
 class ScheduleFuTest < ActiveSupport::TestCase
-  # Replace this with your real tests.
-  test "the truth" do
-    assert true
+  load_schema
+
+  def test_schema_loaded
+    assert_equal [], CalendarEvent.all
   end
 end
