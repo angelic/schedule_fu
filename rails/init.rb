@@ -1,0 +1,1 @@
+require 'schedule_fu'
