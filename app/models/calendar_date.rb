@@ -33,6 +33,10 @@ class CalendarDate < ActiveRecord::Base
     end
   end
 
+  def self.create_for_date(date)
+    self.create_for_dates(date, date)
+  end
+
   @@create_lock = Mutex.new
   
   def self.get_and_create_dates(range)
