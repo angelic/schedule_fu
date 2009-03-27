@@ -79,7 +79,47 @@ class CalendarEvent < ActiveRecord::Base
   def weekday_selected?(n)
     self.send("repeat_#{n}") == true
   end
-  
+
+  # creates Calendar Event Mods for new dates by date value
+  # takes an array 
+  def add_dates_by_date_value(date_values)
+    transaction do
+      date_values.each do |date_value|
+        next if date_value.blank? 
+        begin
+          CalendarDate.create_for_date(date_value.to_date)
+          event_date = event_dates.first(:conditions => {:date_value => date_value})
+          next if event_date && !event_date.removed?
+          if event_date
+            event_date.mod.destroy
+          else
+            date_id = CalendarDate.find_by_value(date_value).id
+            mods.create(:calendar_date_id => date_id)
+          end
+        rescue
+          errors.add_to_base("Invalid date: #{date_value}")
+          raise ActiveRecord::Rollback
+        end
+      end
+    end
+  end
+
+  # creates Calendar Event Mods for removed dates by date id
+  # takes an array
+  def remove_dates_by_id(date_ids)
+    date_ids.each do |id|
+      next if id.blank?
+      event_date = event_dates.first(:conditions => {:calendar_date_id => id})
+      next unless event_date && !event_date.removed?
+      if event_date.added? || event_date.modified?
+        event_date.mod.destroy
+      end
+      unless event_date.added?
+        mods.create(:calendar_date_id => id, :removed => true)
+      end
+    end
+  end
+
   protected
   def create_dates_for_range
     CalendarDate.get_and_create_dates(self.date_range)
