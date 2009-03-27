@@ -109,7 +109,7 @@ class CalendarEvent < ActiveRecord::Base
       arr
     elsif event_type_matches?(:monthly, :yearly)
       {:monthday => start_date.mday, :weekday => start_date.wday, 
-       :monthweek => (start_date.mday - 1) / 7}
+       :monthweek => (start_date.mday - 1) / 7, :month => start_date.month}
     end
   end
 end
