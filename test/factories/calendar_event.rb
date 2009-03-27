@@ -5,6 +5,10 @@ Factory.define :calendar_event do |e|
   e.desc 'some event description'
 end
 
+Factory.define :calendar_event_norepeat, :parent => :calendar_event do |e|
+  e.calendar_event_type_id 1
+end
+
 Factory.define :calendar_event_weekdays, :parent => :calendar_event do |e|
   e.calendar_event_type_id 2
 end
@@ -23,14 +27,7 @@ Factory.define :calendar_event_monthly, :parent => :calendar_event do |e|
   e.by_day_of_month true
 end
 
-Factory.define :calendar_event_yearly_by_day_of_month, :parent => :calendar_event do |e|
+Factory.define :calendar_event_yearly, :parent => :calendar_event do |e|
   e.calendar_event_type_id 6
   e.by_day_of_month true
-end
-
-Factory.define :calendar_event_yearly_by_day_of_month_with_two_event_dates, :parent => :calendar_event_yearly_by_day_of_month do |e|
-  e.calendar_event_type_id 6
-  e.by_day_of_month true
-  e.start_date 1.month.ago
-  e.end_date 1.year.from_now
 end

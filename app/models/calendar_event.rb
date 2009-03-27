@@ -94,7 +94,9 @@ class CalendarEvent < ActiveRecord::Base
   # end
   
   def add_recurrences
-    unless event_type.name == "norepeat"
+    if event_type_matches?(:norepeat, :weekdays, :daily)
+      self.recurrences = []
+    else
       (0..6).each {|n| self.send("repeat_#{n}=", self.send("repeat_#{n}"))}
       self.recurrences = []
       # self.occurrences = []
