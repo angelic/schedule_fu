@@ -1,3 +1,6 @@
+require 'calendar'
+require 'calendar_event_type'
+
 class AddScheduleFuTables < ActiveRecord::Migration
   def self.up
     create_table :calendars do |t|
@@ -47,6 +50,8 @@ class AddScheduleFuTables < ActiveRecord::Migration
       t.column :long_desc, :text
       t.column :removed, :boolean, :null=>false, :default=>false
     end
+    add_index :calendar_event_mods, [:calendar_event_id, :calendar_date_id], 
+        :unique => true, :name => "calendar_event_mods_for_event_and_date"
 
     create_table :calendar_recurrences do |t|
       t.column :calendar_event_id, :integer, :null=>false
@@ -56,7 +61,7 @@ class AddScheduleFuTables < ActiveRecord::Migration
       t.column :month, :integer, :limit => 1
     end
 
-    monthly_and_yearly_where_sql = <<-END_SQL
+    monthly_and_yearly_where_sql = "
       (
         ce.by_day_of_month = false 
         AND cr.weekday = cd.weekday
@@ -70,7 +75,7 @@ class AddScheduleFuTables < ActiveRecord::Migration
       ) OR (
         ce.by_day_of_month = true AND cr.monthday = cd.monthday
       )
-    END_SQL 
+    "
 
     execute <<-END_SQL
       CREATE VIEW calendar_event_dates AS
@@ -79,6 +84,8 @@ class AddScheduleFuTables < ActiveRecord::Migration
           AS calendar_event_id,
         cd.id 
           AS calendar_date_id,
+        cem.id
+          AS calendar_event_mod_id,
         cd.value 
           AS date_value,
         COALESCE(cem.start_time, ce.start_time) 
@@ -89,7 +96,10 @@ class AddScheduleFuTables < ActiveRecord::Migration
           AS 'desc',
         COALESCE(cem.long_desc, ce.long_desc) 
           AS long_desc,
-        cr.id IS NULL
+        ((ce.calendar_event_type_id IN (4,5,6) AND cr.id IS NULL)
+        OR (ce.start_date IS NOT NULL AND cd.value < ce.start_date)
+        OR (ce.end_date IS NOT NULL AND cd.value > ce.end_date)
+        OR (ce.calendar_event_type_id = #{weekdays_id} AND cd.weekday not in (1,2,3,4,5)))
           AS added,
         (cem.id IS NOT NULL AND cem.removed = true) 
           AS removed,
@@ -98,24 +108,27 @@ class AddScheduleFuTables < ActiveRecord::Migration
             OR cem.desc IS NOT NULL OR cem.long_desc IS NOT NULL))
           AS modified
       FROM calendar_dates cd
-      INNER JOIN calendar_events ce ON
-        (ce.start_date IS NULL OR cd.value >= ce.start_date)
-        AND (ce.end_date IS NULL OR cd.value <= ce.end_date)
+      LEFT OUTER JOIN calendar_events ce ON
+        (ce.start_date IS NULL OR ce.start_date IS NOT NULL)
       LEFT OUTER JOIN calendar_event_mods cem
-        ON cem.calendar_event_id = ce.id
-        AND cem.calendar_date_id = cd.id
+        ON cem.calendar_date_id = cd.id 
+        AND cem.calendar_event_id = ce.id
       LEFT OUTER JOIN calendar_recurrences cr ON cr.calendar_event_id = ce.id
         AND ce.calendar_event_type_id IN (#{weekly_id},#{monthly_id},#{yearly_id})
       WHERE 
         (
           cd.id IS NOT NULL OR cem.id IS NOT NULL 
         ) AND (
+          ((ce.start_date IS NULL OR cd.value >= ce.start_date)
+          AND (ce.end_date IS NULL OR cd.value <= ce.end_date))
+          OR cem.id IS NOT NULL
+        ) AND (
           cem.id IS NOT NULL 
           OR (
             ce.calendar_event_type_id = #{norepeat_id} 
             AND ce.start_date = cd.value
           ) OR (
-            ce.calendar_event_type_id = #{weekdays_id} AND cd.weekday in (1,2,3,4,5)
+            ce.calendar_event_type_id = #{weekdays_id} AND cd.weekday IN (1,2,3,4,5)
           ) OR (
             ce.calendar_event_type_id = #{daily_id}
           ) OR (
