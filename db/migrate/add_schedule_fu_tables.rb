@@ -146,7 +146,10 @@ class AddScheduleFuTables < ActiveRecord::Migration
               )
             )
           )
-        );
+        )
+      GROUP BY ce.id, cd.id, cd.value, cem.id, ce.start_time, ce.end_time, 
+        ce.desc, ce.long_desc, cem.start_time, cem.end_time, cem.desc,
+        cem.long_desc, added, removed, modified;
     END_SQL
   end
  
