@@ -5,4 +5,9 @@ class CalendarEventDate < ActiveRecord::Base
 
   named_scope :removed, :conditions => {:removed => true}, :order => 'date_value'
   named_scope :not_removed, :conditions => {:removed => false}, :order => 'date_value'
+
+  def mod_or_build
+    mod || build_mod(:calendar_event_id => calendar_event_id, 
+        :calendar_date_id => calendar_date_id)
+  end
 end

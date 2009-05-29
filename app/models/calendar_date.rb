@@ -28,13 +28,15 @@ class CalendarDate < ActiveRecord::Base
     self.by_dates(range).each {|d| existing_dates << d.value }
     range.each do |date|
       begin
-        self.create(:value => date) unless existing_dates.include?(date)
+        self.find_or_create_by_value(date) unless existing_dates.include?(date)
       rescue; end
     end
   end
 
   def self.create_for_date(date)
-    self.create_for_dates(date, date)
+    begin
+      self.find_or_create_by_value(date)
+    rescue; end
   end
 
   @@create_lock = Mutex.new

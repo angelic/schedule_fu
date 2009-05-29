@@ -120,6 +120,41 @@ class CalendarEvent < ActiveRecord::Base
     end
   end
 
+  # hash of modification attributes, with the calendar date id as the key
+  def create_or_update_mods(mod_attrs_hash)
+    current_mods_hash = {}
+    mods.each {|mod| current_mods_hash[mod.calendar_date_id] = mod }
+
+    mod_attrs_hash.each do |key, mod_attrs|
+      if mod = current_mods_hash[key.to_i]
+        if mod_attrs[:removed] && mod.event_date.added?
+          mod.destroy
+        else
+          mod.update_attributes(mod_attrs)
+        end
+      else
+        mods.create({:calendar_date_id => key}.merge(mod_attrs))
+      end
+    end
+  end
+
+  # Hash of modification attributes, with the calendar date value as the key.
+  # This makes more database calls than create_or_update_mods, so only use it
+  # if necessary
+  def create_or_update_mods_by_date_value(mod_attrs_hash)
+    mod_attrs_hash_with_ids = {}
+    mod_attrs_hash.each do |key, mod_attrs|
+      begin
+        CalendarDate.create_for_date(key.to_date)
+        date_id = CalendarDate.find_by_date_value(key).id
+        mod_attrs_hash_with_ids[date_id] = mod_attrs
+      rescue
+        errors.add_to_base("Invalid date: #{key}")
+      end
+    end
+    create_or_update_mods(mod_attrs_hash_with_ids)
+  end
+
   protected
   def create_dates_for_range
     CalendarDate.get_and_create_dates(self.date_range)
