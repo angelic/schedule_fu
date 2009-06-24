@@ -10,7 +10,7 @@ To generate the ScheduleFu migrations, run:
 
 This is a diagram of the models
 
-!(docs/database.png)(docs/database.png)
+![docs/database.png](docs/database.png)
 
 The database diagram can be found in docs/database.png along with the original Dia file.
 
