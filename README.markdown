@@ -10,9 +10,9 @@ To generate the ScheduleFu migrations, run:
 
 This is a diagram of the models
 
-![docs/database.png](docs/database.png)
+![database.png](database.png)
 
-The database diagram can be found in docs/database.png along with the original Dia file.
+The original Dia file can be found in the docs directory.
 
 This plugin borrows a lot from [acts_as_calendar](http://github.com/dball/acts_as_calendar)
 and [calendar_helper](http://github.com/topfunky/calendar_helper).
