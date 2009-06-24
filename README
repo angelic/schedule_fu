@@ -1,6 +1,0 @@
-ScheduleFu
-==========
-This plugin is just beginning. It will allow scheduling events with dates and
-times. It will include both the model and view portions of a calendar. This will
-borrow heavily from acts_as_calendar (http://github.com/dball/acts_as_calendar)
-and calendar_helper (http://github.com/topfunky/calendar_helper).
