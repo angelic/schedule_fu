@@ -6,13 +6,13 @@ model and view portions of a calendar. See
 
 To generate the ScheduleFu migrations, run:
 
-  rake db:migrate:schedule_fu
+    rake db:migrate:schedule_fu
 
 This is a diagram of the models
 
-![database.png](database.png)
+![database.png](http://angelic.github.com/schedule_fu/database.png)
 
-The original Dia file can be found in the docs directory.
+The database diagram can be found in docs/database.png along with the original Dia file.
 
 This plugin borrows a lot from [acts_as_calendar](http://github.com/dball/acts_as_calendar)
 and [calendar_helper](http://github.com/topfunky/calendar_helper).
