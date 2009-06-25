@@ -11,6 +11,7 @@ To generate the ScheduleFu migrations, run:
 ### Tables
 
 * calendars: distinct calendar that can be associated with your own models
+* calendar_events: distinct event
 * calendar_recurrences: specific information on particular recurring dates
 * calendar_event_mods: modification to a particular calendar_event
 * calendar_event_types: different types of events
@@ -22,7 +23,7 @@ year before or after any date used in an event.
 
 * added: true if this date was added as a mod and not in the original event 
 * modified: for dates that are included in the original event but have been modified (time, description, etc)
-* removed: true if this particular date was removed. There are named scopes in calendar_event_dates for :removed and :not_removed
+* removed: true if this particular date was removed (named scopes :removed and :not_removed available in calendar_event_dates)
 
 ### Database diagram
 The database diagram can also be found in docs/database.png along with the original Dia file.
