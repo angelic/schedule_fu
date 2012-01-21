@@ -1,11 +1,15 @@
-require File.dirname(__FILE__) + '/../test_helper'
+require 'test_helper'
 
 class CalendarEventTest < ActiveSupport::TestCase
-  should_validate_presence_of :calendar, :start_date, :calendar_event_type_id
+  describe CalendarEvent do
+    it { should validate_presence_of :calendar }
+    it { should validate_presence_of :start_date }
+    it { should validate_presence_of :calendar_event_type_id }
+  end
 
   context "norepeat event" do
     setup do
-      @event = Factory(:calendar_event_norepeat, :start_date => 1.day.from_now, 
+      @event = FactoryGirl.create(:calendar_event_norepeat, :start_date => 1.day.from_now, 
           :end_date => 2.weeks.from_now)
     end
 
@@ -21,7 +25,7 @@ class CalendarEventTest < ActiveSupport::TestCase
 
   context "weekdays event" do
     setup do
-      @event = Factory(:calendar_event_weekdays, :start_date => 1.day.from_now, 
+      @event = FactoryGirl.create(:calendar_event_weekdays, :start_date => 1.day.from_now, 
           :end_date => 2.weeks.from_now)
       @count_of_weekdays = Hash.new {|hash, key| hash[key] = 0}
       @event.dates.each do |d|
@@ -52,7 +56,7 @@ class CalendarEventTest < ActiveSupport::TestCase
 
   context "daily event with 14 event dates" do
     setup do
-      @event = Factory(:calendar_event_daily, :start_date => 1.day.from_now,
+      @event = FactoryGirl.create(:calendar_event_daily, :start_date => 1.day.from_now,
           :end_date => 2.weeks.from_now)
     end
 
@@ -75,7 +79,7 @@ class CalendarEventTest < ActiveSupport::TestCase
   context "weekly event" do
     context "on Monday, Wednesday, and Friday with 6 event dates" do
       setup do
-        @event = Factory(:calendar_event_weekly, :repeat_0 => false, :repeat_1 => true,
+        @event = FactoryGirl.create(:calendar_event_weekly, :repeat_0 => false, :repeat_1 => true,
             :repeat_2 => false, :repeat_3 => true, :repeat_4 => false, 
             :repeat_5 => true, :repeat_6 => false, :start_date => 1.day.from_now,
             :end_date => 2.weeks.from_now)
@@ -110,7 +114,7 @@ class CalendarEventTest < ActiveSupport::TestCase
   context "monthly event" do
     context "by day of month with 6 event dates" do
       setup do
-        @event = Factory(:calendar_event_monthly, :by_day_of_month => true,
+        @event = FactoryGirl.create(:calendar_event_monthly, :by_day_of_month => true,
             :start_date => 1.week.ago, :end_date => 5.months.from_now)
         @recurrence = @event.recurrences.first
       end
@@ -132,7 +136,7 @@ class CalendarEventTest < ActiveSupport::TestCase
 
     context "by day of week with 6 event dates" do
       setup do
-        @event = Factory(:calendar_event_monthly, :by_day_of_month => false,
+        @event = FactoryGirl.create(:calendar_event_monthly, :by_day_of_month => false,
             :start_date => 1.week.ago, :end_date => 5.months.from_now)
         @recurrence = @event.recurrences.first
       end
@@ -162,7 +166,7 @@ class CalendarEventTest < ActiveSupport::TestCase
   context "yearly event" do
     context "by day of month with 2 event dates" do
       setup do
-        @event = Factory(:calendar_event_yearly, :by_day_of_month => true,
+        @event = FactoryGirl.create(:calendar_event_yearly, :by_day_of_month => true,
             :start_date => 1.month.ago, :end_date => 1.year.from_now)
         @recurrence = @event.recurrences.first
       end
@@ -190,7 +194,7 @@ class CalendarEventTest < ActiveSupport::TestCase
 
     context "by day of week with 2 event dates" do
       setup do
-        @event = Factory(:calendar_event_yearly, :by_day_of_month => false,
+        @event = FactoryGirl.create(:calendar_event_yearly, :by_day_of_month => false,
             :start_date => 1.month.ago, :end_date => 1.year.from_now)
         @recurrence = @event.recurrences.first
       end

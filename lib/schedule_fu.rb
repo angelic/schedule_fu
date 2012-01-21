@@ -1,9 +1,8 @@
-# require 'icalendar'
- 
+require "schedule_fu/calendar_helper"
+require "schedule_fu/engine"
+require "schedule_fu/parser"
+require "schedule_fu/finder"
+require "schedule_fu/schedule_fu_helper"
+
 module ScheduleFu
-  Dir.glob(File.dirname(__FILE__) + '/../app/*') do |path|
-    $LOAD_PATH << path
-    ActiveSupport::Dependencies.load_paths << path
-    ActiveSupport::Dependencies.load_once_paths.delete(path) 
-  end
 end

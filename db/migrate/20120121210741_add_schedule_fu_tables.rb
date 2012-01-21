@@ -96,11 +96,9 @@ class AddScheduleFuTables < ActiveRecord::Migration
           AS 'desc',
         COALESCE(cem.long_desc, ce.long_desc) 
           AS long_desc,
-        ((ce.calendar_event_type_id IN (#{weekly_id},#{monthly_id},#{yearly_id}) AND cr.id IS NULL)
+        ((ce.calendar_event_type_id IN (4,5,6) AND cr.id IS NULL)
         OR (ce.start_date IS NOT NULL AND cd.value < ce.start_date)
         OR (ce.end_date IS NOT NULL AND cd.value > ce.end_date)
-        OR (ce.calendar_event_type_id = #{norepeat_id} AND ce.end_date IS NULL 
-          AND ce.start_date IS NOT NULL AND cd.value != ce.start_date)
         OR (ce.calendar_event_type_id = #{weekdays_id} AND cd.weekday not in (1,2,3,4,5)))
           AS added,
         (cem.id IS NOT NULL AND cem.removed = true) 

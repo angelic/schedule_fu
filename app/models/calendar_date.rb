@@ -11,10 +11,10 @@ class CalendarDate < ActiveRecord::Base
   validates_inclusion_of :monthweek, :in => 0..4
   validates_inclusion_of :month, :in => 1..12
 
-  before_validation_on_create :derive_date_parts
+  before_validation :derive_date_parts, :on => :create
 
-  named_scope :by_dates, lambda {|*args| {:conditions => conditions_for_date_finders(*args)}}
-  named_scope :by_values, lambda{|*args| {:conditions => ["value in (?)", args]}}
+  scope :by_dates, lambda {|*args| {:conditions => conditions_for_date_finders(*args)}}
+  scope :by_values, lambda{|*args| {:conditions => ["value in (?)", args]}}
   
   def self.find_by_value(value)
     find(:first, :conditions => { :value => value })
@@ -28,15 +28,13 @@ class CalendarDate < ActiveRecord::Base
     self.by_dates(range).each {|d| existing_dates << d.value }
     range.each do |date|
       begin
-        self.find_or_create_by_value(date) unless existing_dates.include?(date)
+        self.create(:value => date) unless existing_dates.include?(date)
       rescue; end
     end
   end
 
   def self.create_for_date(date)
-    begin
-      self.find_or_create_by_value(date)
-    rescue; end
+    self.create_for_dates(date, date)
   end
 
   @@create_lock = Mutex.new

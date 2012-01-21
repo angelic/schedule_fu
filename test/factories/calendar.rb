@@ -1,3 +1,5 @@
-Factory.define :calendar do |e|
-  e.desc 'Test calendar'  
+FactoryGirl.define do
+  factory :calendar do
+    desc 'Test calendar'  
+  end
 end

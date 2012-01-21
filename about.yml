@@ -1,6 +1,0 @@
-author: angelic
-summary: Scheduling system based on acts_as_calendar and calendar_helper
-plugin: git://github.com/angelic/schedule_fu.git
-license: MIT
-version: 0.1
-rails_version: 2.0+
