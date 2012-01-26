@@ -3,7 +3,7 @@ PATH
   specs:
     schedule_fu (0.2)
       mysql2
-      rails (~> 3.2.0)
+      rails (>= 3.2.0)
 
 GEM
   remote: http://rubygems.org/
