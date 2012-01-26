@@ -76,7 +76,8 @@ module ScheduleFu
       
       content_tag(:table, :class => options[:table_class], :border => 0, 
           :cellspacing => 0, :cellpadding => 0) do
-        calendar_head(options, vars) + calendar_body(options, vars, &block)
+        text = calendar_head(options, vars).html_safe
+        text << calendar_body(options, vars, &block).html_safe
       end
     end
     
@@ -142,14 +143,14 @@ module ScheduleFu
     def calendar_head(options, vars)
       content_tag(:thead) do
         contents = content_tag(:tr) do
-          text = ""
+          text = "".html_safe
           text << content_tag(:th, :colspan => determine_colspan(text, options), 
               :class => options[:month_name_class]) do
             "#{options[:month_name_array][options[:month]]} #{options[:display_year]}"
           end
           text << content_tag(:th, options[:next_month_text], :colspan => 2) if options[:next_month_text]
           text
-      end
+        end
         contents << content_tag(:tr, :class => options[:day_name_class]) do
           add_day_names(options, vars)
         end
@@ -157,7 +158,7 @@ module ScheduleFu
     end
     
     def add_day_names(options, vars)
-      text = ""
+      text = "".html_safe
       day_names(vars[:first_weekday]).each do |d|
         text << content_tag(:th, :scope => 'col') do
           unless d[options[:abbrev]].eql? d
@@ -200,7 +201,7 @@ module ScheduleFu
     end
     
     def fill_days_last_month(options, first, first_weekday, &block)
-      text = ""
+      text = "".html_safe
       beginning_of_week(first, first_weekday).upto(first - 1) do |d|
         text << fill_day(d, options, false, &block)
       end unless first.wday == first_weekday
@@ -208,16 +209,16 @@ module ScheduleFu
     end
     
     def fill_days_this_month(options, first, last, last_weekday, &block)
-      text = ""
+      text = "".html_safe
       first.upto(last) do |d|
         text << fill_day(d, options, true, &block)
-        text << "</tr><tr>" if d.wday == last_weekday
+        text << "</tr><tr>".html_safe if d.wday == last_weekday
       end
       text
     end
     
     def fill_days_next_month(options, last, first_weekday, last_weekday, &block)
-      text = ""
+      text = "".html_safe
       (last + 1).upto(beginning_of_week(last + 7, first_weekday) - 1)  do |d|
         text << fill_day(d, options, false, &block)
       end unless last.wday == last_weekday
