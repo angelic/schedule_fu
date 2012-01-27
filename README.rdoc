@@ -1,7 +1,7 @@
 # ScheduleFu
 
 ScheduleFu allows scheduling events with dates and times. It includes both the 
-model and view portions of a calendar. See 
+model and view portions of a calendar. It currently works with Rails 3.2. See 
 [RSchedule](http://github.com/angelic/rschedule) for an example application using it.
 
 To generate the ScheduleFu migrations, run:
