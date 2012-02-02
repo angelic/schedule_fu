@@ -16,7 +16,7 @@ times. It includes both the model and view portions of a calendar. It
 borrow heavily from acts_as_calendar (http://github.com/dball/acts_as_calendar)
 and calendar_helper (http://github.com/topfunky/calendar_helper).}
 
-  s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.rdoc"]
+  s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.markdown"]
   s.test_files = Dir["test/**/*"]
 
   s.add_dependency "rails", ">= 3.2.0"
