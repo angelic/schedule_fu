@@ -8,6 +8,7 @@ module ScheduleFu
           when String then parse_dates(args[0])
           when Date then args[0]
           when Time then args[0]
+          when Range then args[0]
           when Enumerable then args[0].map {|arg| parse(arg)}
           else raise ArgumentError, args[0].class.to_s
         end
