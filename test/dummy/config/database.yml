@@ -6,4 +6,3 @@ test:
   pool: 5
   username: schedule_fu
   password: schedule_fu
-  socket: /var/run/mysqld/mysqld.sock
