@@ -112,116 +112,272 @@ class CalendarEventTest < ActiveSupport::TestCase
   end
 
   context "monthly event" do
-    context "by day of month with 6 event dates" do
-      setup do
-        @event = FactoryGirl.create(:calendar_event_monthly, :by_day_of_month => true,
-            :start_date => 1.week.ago, :end_date => 5.months.from_now)
-        @recurrence = @event.recurrences.first
+    context "by the day of month with 6 months" do
+      def setup_monthly_by_day_of_month(start_date)
+        event = FactoryGirl.create(:calendar_event_monthly, :by_day_of_month => true,
+            :start_date => start_date, :end_date => 5.months.from_now)
+        event_count = 1
+        (1..5).each {|n| event_count += 1 if start_date.day == (start_date + n.month).day}
+        return event, event_count
       end
 
-      should "have 1 recurrence" do
-        assert_equal 1, @event.recurrences.count
+      context "with a random date" do
+        setup do
+          @event, @event_count = setup_monthly_by_day_of_month(1.week.ago)
+        end
+
+        should "have 1 recurrence" do
+          assert_equal 1, @event.recurrences.count
+        end
+
+        should "have the correct number of event dates" do
+          assert_equal @event_count, @event.event_dates.count
+        end 
+
+        should "have the correct day of month" do
+          @event.dates.each do |d|
+            assert_equal @event.recurrences.first.monthday, d.monthday
+          end
+        end
       end
 
-      should "have 6 event dates" do
-        assert_equal 6, @event.event_dates.count
-      end 
+      context "with 01-31-2012" do
+        setup do
+          @event, @event_count = setup_monthly_by_day_of_month(Date.parse('2012-01-31'))
+        end
 
-      should "have the correct day of month" do
-        @event.dates.each do |d|
-          assert_equal @recurrence.monthday, d.monthday
+        should "have 1 recurrence" do
+          assert_equal 1, @event.recurrences.count
+        end
+
+        should "have the correct number of event dates" do
+          assert_equal @event_count, @event.event_dates.count
+        end 
+
+        should "have the correct day of month" do
+          @event.dates.each do |d|
+            assert_equal @event.recurrences.first.monthday, d.monthday
+          end
         end
       end
     end
 
-    context "by day of week with 6 event dates" do
-      setup do
-        @event = FactoryGirl.create(:calendar_event_monthly, :by_day_of_month => false,
-            :start_date => 1.week.ago, :end_date => 5.months.from_now)
-        @recurrence = @event.recurrences.first
+    context "by day of week with 6 months" do
+      def setup_monthly_by_date_of_week(start_date)
+        start_date = start_date.to_date
+        event = FactoryGirl.create(:calendar_event_monthly, :by_day_of_month => false,
+            :start_date => start_date, :end_date => 5.months.from_now)
+        event_count = 1
+        monthweek = (start_date.mday - 1) / 7
+        (1..5).each do |n| 
+          new_date = (start_date + n.months).beginning_of_month
+          until new_date.wday == start_date.wday
+            new_date = new_date.next
+          end
+          new_date += monthweek.weeks
+          event_count += 1 if (start_date + n.months).month == new_date.month
+        end
+        return event, event_count
       end
 
-      should "have 1 recurrence" do
-        assert_equal 1, @event.recurrences.count
-      end
+      context "with a random date" do
+        setup do
+          @event, @event_count = setup_monthly_by_date_of_week(1.week.ago)
+        end
 
-      should "have 6 event dates" do
-        assert_equal 6, @event.event_dates.count
-      end 
+        should "have 1 recurrence" do
+          assert_equal 1, @event.recurrences.count
+        end
 
-      should "have the correct day of week" do
-        @event.dates.each do |d|
-          assert_equal @recurrence.weekday, d.weekday
+        should "have the correct number of event dates" do
+          assert_equal @event_count, @event.event_dates.count
+        end 
+
+        should "have the correct day of week" do
+          @event.dates.each do |d|
+            assert_equal @event.recurrences.first.weekday, d.weekday
+          end
+        end
+
+        should "have the correct week" do
+          @event.dates.each do |d|
+            assert_equal @event.recurrences.first.monthweek, d.monthweek
+          end
         end
       end
 
-      should "have the correct week" do
-        @event.dates.each do |d|
-          assert_equal @recurrence.monthweek, d.monthweek
+      context "with 02-29-2012" do
+        setup do
+          @event, @event_count = setup_monthly_by_date_of_week(Date.parse('2012-02-29'))
+        end
+
+        should "have 1 recurrence" do
+          assert_equal 1, @event.recurrences.count
+        end
+
+        should "have the correct number of event dates" do
+          assert_equal @event_count, @event.event_dates.count
+        end 
+
+        should "have the correct day of week" do
+          @event.dates.each do |d|
+            assert_equal @event.recurrences.first.weekday, d.weekday
+          end
+        end
+
+        should "have the correct week" do
+          @event.dates.each do |d|
+            assert_equal @event.recurrences.first.monthweek, d.monthweek
+          end
         end
       end
     end
   end
 
   context "yearly event" do
-    context "by day of month with 2 event dates" do
-      setup do
-        @event = FactoryGirl.create(:calendar_event_yearly, :by_day_of_month => true,
-            :start_date => 1.month.ago, :end_date => 1.year.from_now)
-        @recurrence = @event.recurrences.first
+    context "by day of month with 2 years" do
+      def setup_yearly_event_by_day_of_month(start_date)
+        event = FactoryGirl.create(:calendar_event_yearly, :by_day_of_month => true,
+            :start_date => start_date, :end_date => 1.year.from_now)
+        event_count = 1
+        event_count = 2 if start_date.day == (start_date + 1.year).day
+        return event, event_count
       end
+      
+      context "with a random date" do
+        setup do
+          @event, @event_count = setup_yearly_event_by_day_of_month(1.month.ago)
+          @recurrence = @event.recurrences.first
+        end
 
-      should "have 1 recurrence" do
-        assert_equal 1, @event.recurrences.count
-      end
+        should "have 1 recurrence" do
+          assert_equal 1, @event.recurrences.count
+        end
 
-      should "have 2 event dates" do
-        assert_equal 2, @event.event_dates.count
-      end 
+        should "have the correct number of event dates" do
+          assert_equal @event_count, @event.event_dates.count
+        end 
 
-      should "have the correct month" do
-        @event.dates.each do |d|
-          assert_equal @recurrence.month, d.month
+        should "have the correct month" do
+          @event.dates.each do |d|
+            assert_equal @recurrence.month, d.month
+          end
+        end
+
+        should "have the correct day of month" do
+          @event.dates.each do |d|
+            assert_equal @recurrence.monthday, d.monthday
+          end
         end
       end
 
-      should "have the correct day of month" do
-        @event.dates.each do |d|
-          assert_equal @recurrence.monthday, d.monthday
+      context "with 02-29-2012" do
+        setup do
+          @event, @event_count = setup_yearly_event_by_day_of_month(Date.parse('2012-02-29'))
+          @recurrence = @event.recurrences.first
+        end
+
+        should "have 1 recurrence" do
+          assert_equal 1, @event.recurrences.count
+        end
+
+        should "have the correct number of event dates" do
+          assert_equal @event_count, @event.event_dates.count
+        end 
+
+        should "have the correct month" do
+          @event.dates.each do |d|
+            assert_equal @recurrence.month, d.month
+          end
+        end
+
+        should "have the correct day of month" do
+          @event.dates.each do |d|
+            assert_equal @recurrence.monthday, d.monthday
+          end
         end
       end
     end
 
-    context "by day of week with 2 event dates" do
-      setup do
-        @event = FactoryGirl.create(:calendar_event_yearly, :by_day_of_month => false,
-            :start_date => 1.month.ago, :end_date => 1.year.from_now)
-        @recurrence = @event.recurrences.first
+    context "by day of week with 2 years" do
+      def setup_yearly_event_by_day_of_week(start_date)
+        event = FactoryGirl.create(:calendar_event_yearly, :by_day_of_month => false,
+            :start_date => start_date, :end_date => 1.year.from_now)
+        event_count = 1
+        start_date = start_date.to_date
+        monthweek = (start_date.mday - 1) / 7
+        new_date = (start_date + 1.year).beginning_of_month
+        until new_date.wday == start_date.wday
+          new_date = new_date.next
+        end
+        new_date += monthweek.weeks
+        event_count = 2 if (start_date + 1.year).month == new_date.month
+        return event, event_count
       end
 
-      should "have 1 recurrence" do
-        assert_equal 1, @event.recurrences.count
-      end
+      context "with a random date" do
+        setup do
+          @event, @event_count = setup_yearly_event_by_day_of_week(1.month.ago)
+          @recurrence = @event.recurrences.first
+        end
 
-      should "have 2 event dates" do
-        assert_equal 2, @event.event_dates.count
-      end 
+        should "have 1 recurrence" do
+          assert_equal 1, @event.recurrences.count
+        end
 
-      should "have the correct month" do
-        @event.dates.each do |d|
-          assert_equal @recurrence.month, d.month
+        should "have the correct number of event dates" do
+          assert_equal @event_count, @event.event_dates.count
+        end 
+
+        should "have the correct month" do
+          @event.dates.each do |d|
+            assert_equal @recurrence.month, d.month
+          end
+        end
+
+        should "have the correct day of week" do
+          @event.dates.each do |d|
+            assert_equal @recurrence.weekday, d.weekday
+          end
+        end
+
+        should "have the correct week" do
+          @event.dates.each do |d|
+            assert_equal @recurrence.monthweek, d.monthweek
+          end
         end
       end
 
-      should "have the correct day of week" do
-        @event.dates.each do |d|
-          assert_equal @recurrence.weekday, d.weekday
+      context "with 02-29-2012" do
+        setup do
+          @event, @event_count = setup_yearly_event_by_day_of_week(Date.parse('2012-02-29'))
+          @recurrence = @event.recurrences.first
         end
-      end
 
-      should "have the correct week" do
-        @event.dates.each do |d|
-          assert_equal @recurrence.monthweek, d.monthweek
+        should "have 1 recurrence" do
+          assert_equal 1, @event.recurrences.count
+        end
+
+        should "have the correct number of event dates" do
+          assert_equal @event_count, @event.event_dates.count
+        end 
+
+        should "have the correct month" do
+          @event.dates.each do |d|
+            assert_equal @recurrence.month, d.month
+          end
+        end
+
+        should "have the correct day of week" do
+          @event.dates.each do |d|
+            assert_equal @recurrence.weekday, d.weekday
+          end
+        end
+
+        should "have the correct week" do
+          @event.dates.each do |d|
+            assert_equal @recurrence.monthweek, d.monthweek
+          end
         end
       end
     end
