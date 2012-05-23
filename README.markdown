@@ -6,7 +6,7 @@ model and view portions of a calendar. It currently works with Rails 3.2. See
 
 To generate the ScheduleFu migrations, run:
 
-    rake db:migrate:schedule_fu
+    rake schedule_fu:install:migrations
 
 ### Tables
 
